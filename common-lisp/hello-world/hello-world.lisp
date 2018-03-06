@@ -5,6 +5,6 @@
 
 (in-package #:hello-world)
 
-(defun hello-world (&name)
-  (printf "Hello, %s!" &name)
+(defun hello-world (&optional (name "World"))
+  (format nil "Hello ~A!" name)
   )
