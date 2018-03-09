@@ -14,10 +14,10 @@ defmodule RNATranscription do
 
   defp char_to_rna(c) do
     case c do
-      67 -> 71
-      71 -> 67
-      84 -> 65
-      65 -> 85
+      ?G -> ?C
+      ?C -> ?G
+      ?T -> ?A
+      ?A -> ?U
     end
   end
 end
