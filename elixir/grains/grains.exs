@@ -5,7 +5,7 @@ defmodule Grains do
   @spec square(pos_integer) :: pos_integer
   def square(1), do: {:ok, 1}
 
-  def square(number) when number <= 64 and number > 1 do
+  def square(number) when number in 1..64 do
     {:ok, n} = square(number - 1)
     {:ok, 2 * n}
   end
