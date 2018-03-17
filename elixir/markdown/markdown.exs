@@ -11,42 +11,39 @@ defmodule Markdown do
     "<h1>Header!</h1><ul><li><em>Bold Item</em></li><li><i>Italic Item</i></li></ul>"
   """
   @spec parse(String.t()) :: String.t()
-  def parse(m) do
-    patch(Enum.join(Enum.map(String.split(m, "\n"), fn t -> process(t) end)))
-  end
+  def parse(markdown) do
+    res =
+      markdown
+      |> String.split("\n")
+      |> Enum.reduce({false, ""}, &process/2)
 
-  defp process(t) do
-    if String.starts_with?(t, "#") || String.starts_with?(t, "*") do
-      if String.starts_with?(t, "#") do
-        enclose_with_header_tag(parse_header_md_level(t))
-      else
-        parse_list_md_level(t)
-      end
-    else
-      enclose_with_paragraph_tag(String.split(t))
+    case res do
+      {false, r} -> r
+      {true, r} -> r <> "</ul>"
     end
   end
 
-  defp parse_header_md_level(hwt) do
-    [h | t] = String.split(hwt)
-    {to_string(String.length(h)), Enum.join(t, " ")}
+  defp process(r = "#" <> _, {in_list, res}) do
+    [_, h, l] = Regex.run(~r/(#+) (.+)/, r)
+    level = String.length(h)
+
+    {false, res <> close_tag(in_list) <> "<h#{level}>#{l}</h#{level}>"}
   end
 
-  defp parse_list_md_level(l) do
-    t = String.split(String.trim_leading(l, "* "))
-    "<li>" <> join_words_with_tags(t) <> "</li>"
+  defp process("* " <> r, {in_list, res}) do
+    {true, res <> open_tag(in_list) <> "<li>" <> process_row(r) <> "</li>"}
   end
 
-  defp enclose_with_header_tag({hl, htl}) do
-    "<h" <> hl <> ">" <> htl <> "</h" <> hl <> ">"
+  defp process(t, {in_list, res}) do
+    {false, res <> close_tag(in_list) <> "<p>#{process_row(t)}</p>"}
   end
 
-  defp enclose_with_paragraph_tag(t) do
-    "<p>#{join_words_with_tags(t)}</p>"
-  end
-
-  defp join_words_with_tags(t) do
-    Enum.join(Enum.map(t, fn w -> replace_md_with_tag(w) end), " ")
+  defp process_row(t) do
+    t
+    |> String.split(" ")
+    |> IO.inspect()
+    |> Enum.map(&replace_md_with_tag/1)
+    |> Enum.join(" ")
   end
 
   defp replace_md_with_tag(w) do
@@ -69,11 +66,9 @@ defmodule Markdown do
     end
   end
 
-  defp patch(l) do
-    String.replace_suffix(
-      String.replace(l, "<li>", "<ul>" <> "<li>", global: false),
-      "</li>",
-      "</li>" <> "</ul>"
-    )
-  end
+  defp close_tag(true), do: "</ul>"
+  defp close_tag(false), do: ""
+
+  defp open_tag(false), do: "<ul>"
+  defp open_tag(true), do: ""
 end
