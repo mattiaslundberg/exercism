@@ -12,15 +12,10 @@ defmodule Markdown do
   """
   @spec parse(String.t()) :: String.t()
   def parse(markdown) do
-    res =
-      markdown
-      |> String.split("\n")
-      |> Enum.reduce({false, ""}, &process/2)
-
-    case res do
-      {false, r} -> r
-      {true, r} -> r <> "</ul>"
-    end
+    markdown
+    |> String.split("\n")
+    |> Enum.reduce({false, ""}, &process/2)
+    |> (&(elem(&1, 1) <> close_tag(elem(&1, 0)))).()
   end
 
   defp process(r = "#" <> _, {in_list, res}) do
@@ -31,39 +26,17 @@ defmodule Markdown do
   end
 
   defp process("* " <> r, {in_list, res}) do
-    {true, res <> open_tag(in_list) <> "<li>" <> process_row(r) <> "</li>"}
+    {true, res <> open_tag(in_list) <> "<li>" <> process_text(r) <> "</li>"}
   end
 
   defp process(t, {in_list, res}) do
-    {false, res <> close_tag(in_list) <> "<p>#{process_row(t)}</p>"}
+    {false, res <> close_tag(in_list) <> "<p>#{process_text(t)}</p>"}
   end
 
-  defp process_row(t) do
+  defp process_text(t) do
     t
-    |> String.split(" ")
-    |> IO.inspect()
-    |> Enum.map(&replace_md_with_tag/1)
-    |> Enum.join(" ")
-  end
-
-  defp replace_md_with_tag(w) do
-    replace_suffix_md(replace_prefix_md(w))
-  end
-
-  defp replace_prefix_md(w) do
-    cond do
-      w =~ ~r/^#{"__"}{1}/ -> String.replace(w, ~r/^#{"__"}{1}/, "<strong>", global: false)
-      w =~ ~r/^[#{"_"}{1}][^#{"_"}+]/ -> String.replace(w, ~r/_/, "<em>", global: false)
-      true -> w
-    end
-  end
-
-  defp replace_suffix_md(w) do
-    cond do
-      w =~ ~r/#{"__"}{1}$/ -> String.replace(w, ~r/#{"__"}{1}$/, "</strong>")
-      w =~ ~r/[^#{"_"}{1}]/ -> String.replace(w, ~r/_/, "</em>")
-      true -> w
-    end
+    |> (&Regex.replace(~r/__(.*)__/, &1, "<strong>\\1</strong>")).()
+    |> (&Regex.replace(~r/_(.*)_/, &1, "<em>\\1</em>")).()
   end
 
   defp close_tag(true), do: "</ul>"
