@@ -30,17 +30,24 @@ defmodule SaddlePoints do
   """
   @spec saddle_points(String.t()) :: [{integer, integer}]
   def saddle_points(str) do
-    rs = rows(str)
-    cs = columns(str)
+    for {r, n1} <- row_max(str),
+        {c, n2} <- col_min(str),
+        n1 == n2 do
+      {r, c}
+    end
+  end
 
-    rs
+  defp row_max(str) do
+    str
+    |> rows()
     |> Enum.with_index()
-    |> Enum.reduce({[], 0}, fn {id, v}, {r_ids, val} ->
-      cond do
-        v == val -> {[id | r_ids], v}
-        v > val -> {r_ids, v}
-        true -> {r_ids, val}
-      end
-    end)
+    |> Enum.map(fn {row, idx} -> {idx, Enum.max(row)} end)
+  end
+
+  defp col_min(str) do
+    str
+    |> columns()
+    |> Enum.with_index()
+    |> Enum.map(fn {row, idx} -> {idx, Enum.min(row)} end)
   end
 end
