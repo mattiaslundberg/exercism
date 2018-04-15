@@ -8,13 +8,21 @@ ExUnit.configure(exclude: :pending, trace: true)
 defmodule DiamondTest do
   use ExUnit.Case
 
-  # @tag :pending
   test "letter A" do
     shape = Diamond.build_shape(?A)
     assert shape == "A\n"
   end
 
-  @tag :pending
+  test "letter B" do
+    shape = Diamond.build_shape(?B)
+
+    assert shape == """
+           \sA\s
+           B B
+           \sA\s
+           """
+  end
+
   test "letter C" do
     shape = Diamond.build_shape(?C)
 
@@ -27,7 +35,6 @@ defmodule DiamondTest do
            """
   end
 
-  @tag :pending
   test "letter E" do
     shape = Diamond.build_shape(?E)
 
