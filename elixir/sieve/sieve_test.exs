@@ -8,12 +8,10 @@ ExUnit.configure(exclude: :pending, trace: true)
 defmodule SieveTest do
   use ExUnit.Case
 
-  # @tag :pending
   test "a few primes" do
     assert Sieve.primes_to(10) == [2, 3, 5, 7]
   end
 
-  @tag :pending
   test "primes to 1000" do
     result = [
       2,
